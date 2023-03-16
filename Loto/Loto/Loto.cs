@@ -63,18 +63,18 @@ namespace LotoClassNS
         /// <summary>
         /// Constructor con parametro para crear la lotería
         /// </summary>
-        /// <param name="misnumeros"></param>
-        public loto(int[] misnumeros)  // misnumeros: combinación con la que queremos inicializar la clase
+        /// <param name="misNumeros"></param>
+        public loto(int[] misNumeros)  // misnumeros: combinación con la que queremos inicializar la clase
         {
             for(int i = 0; i < MAX_NUMEROS; i++)
-                if(misnumeros[i] >= NUMERO_MENOR && misnumeros[i] <= NUMERO_MAYOR)
+                if(misNumeros[i] >= NUMERO_MENOR && misNumeros[i] <= NUMERO_MAYOR)
                 {
                     int j;
                     for(j = 0; j < i; j++)
-                        if(misnumeros[i] == ListaNumeros[j])
+                        if(misNumeros[i] == ListaNumeros[j])
                             break;
                     if(i == j)
-                        ListaNumeros[i] = misnumeros[i]; // validamos la combinación
+                        ListaNumeros[i] = misNumeros[i]; // validamos la combinación
                     else
                     {
                         esValida = false;
