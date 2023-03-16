@@ -1,74 +1,110 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using LotoClassNS;
+using System;
 
-namespace ExamenLoto
+namespace LotoClassNS
 {
-    public partial class Form1 : Form
+    // Clase que almacena una combinación de la lotería
+    //
+    public class loto
     {
-        public loto miLoto, miGanadora;
-        private TextBox[] combinacion = new TextBox[6]; // Estos arrays se usan para recorrer de manera más sencilla los controles
-        private TextBox[] ganadora = new TextBox[6];
-        public Form1()
-        {
-            InitializeComponent();
-            combinacion[0] = txtNumero1; ganadora[0] = txtGanadora1;
-            combinacion[1] = txtNumero2; ganadora[1] = txtGanadora2;
-            combinacion[2] = txtNumero3; ganadora[2] = txtGanadora3;
-            combinacion[3] = txtNumero4; ganadora[3] = txtGanadora4;
-            combinacion[4] = txtNumero5; ganadora[4] = txtGanadora5;
-            combinacion[5] = txtNumero6; ganadora[5] = txtGanadora6;
-            miGanadora = new loto(); // generamos la combinación ganadora
-            for (int i = 0; i < 6; i++)
-                ganadora[i].Text = Convert.ToString(miGanadora.Nums[i]);
+        // definición de constantes
+        /// <summary>
+        /// Máximo de números a introducir
+        /// </summary>
+        public const int MAX_NUMEROS = 6;
+        /// <summary>
+        /// Número menor que puede salir
+        /// </summary>
+        public const int NUMERO_MENOR = 1;
+        /// <summary>
+        /// Número mayor que puede salir
+        /// </summary>
+        public const int NUMERO_MAYOR = 49;
 
+        private int[] _listaNumeros = new int[MAX_NUMEROS];   // numeros de la combinación
+        public bool esValida = false;      // combinación válida (si es aleatoria, siempre es válida, si no, no tiene porqué)
+        /// <summary>
+        /// Método público de la lista de números privada
+        /// </summary>
+        public int[] ListaNumeros
+        {
+            get => _listaNumeros;
+            set => _listaNumeros = value;
         }
 
-        private void btGenerar_Click(object sender, EventArgs e)
+        // En el caso de que el constructor sea vacío, se genera una combinación aleatoria correcta
+        //
+        /// <summary>
+        /// Constructor vacío para crear la lotería
+        /// </summary>
+        public loto()
         {
-            miLoto = new loto(); // usamos constructor vacío, se genera combinación aleatoria
-            for ( int i=0; i<6; i++ )
-                combinacion[i].Text = Convert.ToString(miLoto.Nums[i]);
-        }
+            Random r = new Random();    // clase generadora de números aleatorios
 
-        private void btValidar_Click(object sender, EventArgs e)
-        {
-            int[] nums = new int[6];    
-            for (int i = 0; i < 6; i++)
-                nums[i] = Convert.ToInt32(combinacion[i].Text);
-            miLoto = new loto(nums);
-            if (miLoto.ok)
-                MessageBox.Show("Combinación válida");
-            else
-                MessageBox.Show("Combinación no válida");
-        }
+            int i = 0, j, numeroAleatorio;
 
-        private void btComprobar_Click(object sender, EventArgs e)
-        {
-            int[] nums = new int[6];
-            for (int i = 0; i < 6; i++)
-                nums[i] = Convert.ToInt32(combinacion[i].Text);
-            miLoto = new loto(nums);
-            if (miLoto.ok)
+            do             // generamos la combinación
             {
-                nums = new int[6];
-                for (int i = 0; i < 6; i++)
-                    nums[i] = Convert.ToInt32(combinacion[i].Text);
-                int aciertos = miGanadora.comprobar(nums);
-                if (aciertos < 3)
-                    MessageBox.Show("No ha resultado premiada");
+                numeroAleatorio = r.Next(NUMERO_MENOR, NUMERO_MAYOR + 1);     // generamos un número aleatorio del 1 al 49
+                for(j = 0; j < i; j++)    // comprobamos que el número no está
+                    if(ListaNumeros[j] == numeroAleatorio)
+                        break;
+                if(i == j)               // Si i==j, el número no se ha encontrado en la lista, lo añadimos
+                {
+                    ListaNumeros[i] = numeroAleatorio;
+                    i++;
+                }
+            } while(i < MAX_NUMEROS);
+
+            esValida = true;
+        }
+
+        // La segunda forma de crear una combinación es pasando el conjunto de números
+        // misnums es un array de enteros con la combinación que quiero crear (no tiene porqué ser válida)
+        /// <summary>
+        /// Constructor con parametro para crear la lotería
+        /// </summary>
+        /// <param name="misNumeros"></param>
+        public loto(int[] misNumeros)  // misnumeros: combinación con la que queremos inicializar la clase
+        {
+            for(int i = 0; i < MAX_NUMEROS; i++)
+                if(misNumeros[i] >= NUMERO_MENOR && misNumeros[i] <= NUMERO_MAYOR)
+                {
+                    int j;
+                    for(j = 0; j < i; j++)
+                        if(misNumeros[i] == ListaNumeros[j])
+                            break;
+                    if(i == j)
+                        ListaNumeros[i] = misNumeros[i]; // validamos la combinación
+                    else
+                    {
+                        esValida = false;
+                        return;
+                    }
+                }
                 else
-                    MessageBox.Show("¡Enhorabuena! Tiene una combinación con " + Convert.ToString(aciertos) + " aciertos");
-            }
-            else
-                MessageBox.Show("La combinación introducida no es válida");
+                {
+                    esValida = false;     // La combinación no es válida, terminamos
+                    return;
+                }
+            esValida = true;
+        }
+
+        // Método que comprueba el número de aciertos
+        // premi es un array con la combinación ganadora
+        // se devuelve el número de aciertos
+        /// <summary>
+        /// Método con parámetro para comprobar el número de aciertos
+        /// </summary>
+        /// <param name="listaNumerosPremiados"></param>
+        /// <returns></returns>
+        public int comprobar(int[] listaNumerosPremiados)
+        {
+            int numeroAciertos = 0;                    // número de aciertos
+            for(int i = 0; i < MAX_NUMEROS; i++)
+                for(int j = 0; j < MAX_NUMEROS; j++)
+                    if(listaNumerosPremiados[i] == ListaNumeros[j]) numeroAciertos++;
+            return numeroAciertos;
         }
     }
+
 }
